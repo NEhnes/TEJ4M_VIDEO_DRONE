@@ -32,15 +32,16 @@ String speedValue = " ";
 #define ledPin2 22
 #define ledPin3 23
 
-
 // login credentials
 const char *ssid = "Tupperware";
-const char *password = "meals4you"; 
+const char *password = "meals4you";
 
 const char *school_ssid = "amdsb-guest";
 
 AsyncWebServer server(80);
 AsyncWebSocket ws("/ws");
+
+int msecs, lastMsecs;
 
 void setup()
 {
@@ -49,23 +50,27 @@ void setup()
   pinMode(ledPin2, OUTPUT);
   pinMode(ledPin3, OUTPUT);
 
+  msecs = millis();
+  lastMsecs = millis();
+
   Serial.begin(115200);
   Serial.println();
   Serial.println("Connecting...");
 
   WiFi.begin(ssid, password);
 
-  while (WiFi.status() != WL_CONNECTED){
+  while (WiFi.status() != WL_CONNECTED)
+  {
     delay(500);
     Serial.println(".");
   }
-  
+
   // Print IP address
   Serial.println("");
   Serial.println("WiFi connected");
   Serial.print("IP address: ");
   Serial.println(WiFi.localIP());
-  
+
   server.begin();
   Serial.println("Server started");
 
@@ -76,7 +81,8 @@ void setup()
   }
 
   // WebSocket event handler
-  ws.onEvent([](AsyncWebSocket *server, AsyncWebSocketClient *client, AwsEventType type, void *arg, uint8_t *data, size_t len) {
+  ws.onEvent([](AsyncWebSocket *server, AsyncWebSocketClient *client, AwsEventType type, void *arg, uint8_t *data, size_t len)
+             {
     if (type == WS_EVT_DATA) {
       String msg = "";
       for (size_t i = 0; i < len; i++) {
@@ -96,19 +102,18 @@ void setup()
       // Control logic (example: differential drive for motors or LEDs)
       // int leftSpeed = constrain(y + x, -100, 100); // Y (forward/back) + X (turn)
       // int rightSpeed = constrain(y - x, -100, 100);
-    }
-  });
+    } });
 
   // Serve webpage
-  server.on("/", HTTP_GET, [](AsyncWebServerRequest *request) {
+  server.on("/", HTTP_GET, [](AsyncWebServerRequest *request)
+            {
     File file = SPIFFS.open("/index.html", "r");
     if (!file) {
       request->send(404, "text/plain", "File not found");
       return;
     }
     request->send(SPIFFS, "/index.html", "text/html");
-    file.close();
-  });
+    file.close(); });
 
   // Start server and WebSocket
   server.addHandler(&ws);
@@ -116,10 +121,16 @@ void setup()
   Serial.println("Server started");
 }
 
-//complete up to here
-
-
 void loop()
 {
- ws.cleanupClients();
+  // print ip every 5s
+  msecs = millis();
+  if (msecs - lastMsecs > 5000)
+  {
+    Serial.print("IP address: ");
+    Serial.println(WiFi.localIP());
+
+    lastMsecs = millis();
+  }
+  ws.cleanupClients();
 }
