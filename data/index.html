@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>ESP32 Motor Control</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/nipplejs/0.10.0/nipplejs.min.js"></script>
+    <style>
+        /*Style the div that holds the joystick*/
+        #joystick {
+            width: 100px; /* Match the joystick's size for proper alignment */
+            height: 100px; /* Match the joystick's size */
+            margin: 20px auto; /* Center the div horizontally and add vertical spacing */
+            /* Background and border-radius are removed to avoid a misaligned grey circle */
+        }
+    </style>
+</head>
+<body style="text-align:center; font-family:Arial, sans-serif;">
+    <h1 style="color:blue;">ESP32 Motor Control</h1>
+    <p style="font-style: italic; text-shadow: 2px 2px 5px gray">Welcome to the ESP32 motor control interface!</p>
+
+    <div id="joystick"></div>
+    
+    <script>
+        // connect to WebSocket
+        const socket = new WebSocket('ws://' + window.location.hostname + '/ws');
+
+        // when connected
+        socket.onopen = () => {
+            console.log('WebSocket connected!');
+        };
+
+        // diusplay recvd message from esp32
+        socket.onmessage = (event) => {
+            console.log('ESP32 says:', event.data);
+        };
+
+        // Create and configure the nipple.js joystick
+        const joystick = nipplejs.create({
+            zone: document.getElementById('joystick'), // Attach joystick to the #joystick div
+            mode: 'static', // 
+            position: { left: '50%', top: '50%' }, // Center the joystick in the div
+            color: 'blue', // Set joystick color to blue
+            size: 100 // Set joystick diameter to 100 pixels
+        });
+
+        // Event listener for joystick movement
+        joystick.on('move', function(evt, data) {
+            // Check if movement data includes direction and distance
+            if (data.direction && data.distance) {
+                const angle = data.angle.degree; // Get the angle of movement in degrees
+                // Calculate speed (0-100%) based on how far the joystick is moved
+                const speed = Math.min(data.distance / 50, 1) * 100; // Normalize distance to 0-100%
+                
+                //send data back to esp
+                socket.send("SPEED: " + speed + "--" + "ANGLE: " + angle);
+            }
+        });
+
+        // Event listener for when the joystick is released
+        joystick.on('end', function() {
+            // Send a request to stop the motors (angle=0, speed=0)
+            socket.send("AT REST");
+        });
+    </script>
+</body>
+</html>
