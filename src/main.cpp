@@ -36,6 +36,9 @@ String speedValue = " ";
 const char *ssid = "Tupperware";
 const char *password = "meals4you";
 
+const char *phone_ssid = "nathan_iPhone";
+const char *phone_password = "nathan2024";
+
 const char *school_ssid = "amdsb-guest";
 
 AsyncWebServer server(80);
@@ -49,6 +52,7 @@ void setup()
   pinMode(ledPin1, OUTPUT);
   pinMode(ledPin2, OUTPUT);
   pinMode(ledPin3, OUTPUT);
+  pinMode(LED_BUILTIN, HIGH);
 
   msecs = millis();
   lastMsecs = millis();
@@ -57,7 +61,7 @@ void setup()
   Serial.println();
   Serial.println("Connecting...");
 
-  WiFi.begin(ssid, password);
+  WiFi.begin(phone_ssid, phone_password);
 
   while (WiFi.status() != WL_CONNECTED)
   {
@@ -88,7 +92,17 @@ void setup()
       for (size_t i = 0; i < len; i++) {
         msg += (char)data[i];
       }
-      Serial.println("Received: " + msg);
+      //Serial.println("Received: " + msg);
+
+      if (msg.substring(0, 6) != "AT REST"){
+        int speedStartIndex = msg.indexOf("SPEED: ") + 7;
+        String speedString = msg.substring(speedStartIndex, speedStartIndex + 3); // grab first 3 char (incl '.')
+        if (speedString.substring(2, 2) == "."){
+          speedString.remove(2);
+        }
+        Serial.println("ONLY SPEED: ");
+        Serial.println(speedString);
+      }
 
       // Parse joystick data (e.g., "x:50,y:30")
       // int x = 0, y = 0;
