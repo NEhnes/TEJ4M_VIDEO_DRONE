@@ -1,5 +1,14 @@
 /*
-    BRANCH TEST TEST TEST BRANCH
+    HIGH LEVEL OVERVIEW
+    - library inclusions & pin config constants
+    - create server and websocket objects (port 80)
+
+    - init camera, pins, wifi, spiffs
+    - create event listener for websocket data receive
+    - serve webpage
+
+    - sends a new frame every 200ms (5fps) from buffer
+    - cleanup clients
 */
 
 #include <WiFi.h>
@@ -56,7 +65,7 @@ void setup()
   msecs = millis();
   lastMsecs = millis();
 
-  // Camera config
+  // camera config
   camera_config_t config;
   config.ledc_channel = LEDC_CHANNEL_0;
   config.ledc_timer = LEDC_TIMER_0;
@@ -84,11 +93,11 @@ void setup()
   config.jpeg_quality = 50; // 10-63, lower number means higher quality   // DEFAULT: 12
   config.fb_count = 1; // DEFAULT: 1
 
-  // Initialize camera
+  // camera init
   esp_err_t err = esp_camera_init(&config);
   if (err != ESP_OK)
   {
-    Serial.printf("camera init failed with error 0x%x", err);
+    Serial.printf("camera init failed with error 0x%x", err); //print error code (hexadecimal)
     return;
   }
   else
@@ -108,7 +117,7 @@ void setup()
     Serial.println(".");
   }
 
-  // Print IP address
+  // print IP
   Serial.println("");
   Serial.println("WiFi connected");
   Serial.print("IP address: ");
@@ -185,20 +194,21 @@ void loop()
 
 void broadcastCameraFrame()
 {
-  camera_fb_t *fb = esp_camera_fb_get();
+  camera_fb_t *fb = esp_camera_fb_get(); // fill buffer with new frame
+
   if (!fb)
   {
     Serial.println("Camera capture failed");
     return;
   }
 
-  // === HIGHLIGHT: Skip sending if WebSocket buffer is full === //
+  // skip sending if buffer full
   if (ws.availableForWriteAll()) {
     ws.binaryAll(fb->buf, fb->len);
   } else {
     Serial.println("Skipped frame: WebSocket buffer full");
   }
 
-  // Return frame buffer
+  // return frame buffer
   esp_camera_fb_return(fb);
 }

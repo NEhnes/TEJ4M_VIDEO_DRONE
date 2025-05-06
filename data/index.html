@@ -6,12 +6,12 @@
     <style>
         /*Style the div that holds the joystick*/
         #joystick {
-            width: 100px; /* Match the joystick's size for proper alignment */
-            height: 100px; /* Match the joystick's size */
+            width: 100px;
+            height: 100px;
             margin: 20px auto; /* Center the div horizontally and add vertical spacing */
             /* Background and border-radius are removed to avoid a misaligned grey circle */
         }
-        /* === HIGHLIGHT: Added style for camera feed image === */
+        /* camera stream div */
         #stream {
             width: 640px;
             height: 480px;
@@ -53,7 +53,7 @@
             }
         };
 
-        // Create and configure the nipple.js joystick
+        // create and configure the nipple.js joystick
         const joystick = nipplejs.create({
             zone: document.getElementById('joystick'), // Attach joystick to the #joystick div
             mode: 'static', // 
