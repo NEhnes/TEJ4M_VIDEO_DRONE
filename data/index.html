@@ -8,8 +8,11 @@
         #joystick {
             width: 100px;
             height: 100px;
-            margin: 20px auto; /* Center the div horizontally and add vertical spacing */
-            /* Background and border-radius are removed to avoid a misaligned grey circle */
+            position: fixed;
+            left: 40px;
+            top: '50%';
+            transform: translateY(-50%);
+            border: 3px slateblue;
         }
         /* camera stream div */
         #stream {

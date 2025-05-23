@@ -53,8 +53,10 @@ const char *school_ssid = "amdsb-guest";
 AsyncWebServer server(80);
 AsyncWebSocket ws("/ws");
 
-int msecs, lastMsecs;
-int frameInterval = 200;
+uint64_t msecs, lastMsecs;
+int targetFPS = 12;
+int jpegQuality = 30;
+int frameInterval = 1000 / targetFPS;
 
 void broadcastCameraFrame();
 
@@ -86,12 +88,12 @@ void setup()
   config.pin_pwdn = PWDN_GPIO_NUM;
   config.pin_reset = RESET_GPIO_NUM;
   config.xclk_freq_hz = 20000000;
-  config.frame_size = FRAMESIZE_VGA;    // 640x480
+  config.frame_size = FRAMESIZE_QVGA;    // 480x320
   config.pixel_format = PIXFORMAT_JPEG; // For streaming
   config.grab_mode = CAMERA_GRAB_LATEST;  //DEFAULT: GRAB_WHEN_EMPTY
-  config.fb_location = CAMERA_FB_IN_PSRAM;
-  config.jpeg_quality = 50; // 10-63, lower number means higher quality   // DEFAULT: 12
-  config.fb_count = 1; // DEFAULT: 1
+  config.fb_location = CAMERA_FB_IN_DRAM;
+  config.jpeg_quality = jpegQuality; // 10-63, lower number means higher quality   // DEFAULT: 12
+  config.fb_count = 2; // DEFAULT: 1
 
   // camera init
   esp_err_t err = esp_camera_init(&config);
@@ -109,7 +111,7 @@ void setup()
   Serial.println();
   Serial.println("Connecting...");
 
-  WiFi.begin(ssid, password);
+  WiFi.begin(phone_ssid, phone_password);
 
   while (WiFi.status() != WL_CONNECTED)
   {
@@ -182,13 +184,13 @@ void loop()
     lastMsecs = msecs;
   }
 
-  if (msecs - lastMsecs > 5000) // print IP every 5s -> not wokring rn
-  {
-    Serial.print("IP address: ");
-    Serial.println(WiFi.localIP());
+  // if (msecs - lastMsecs > 5000) // print IP every 5s -> not wokring rn
+  // {
+  //   Serial.print("IP address: ");
+  //   Serial.println(WiFi.localIP());
 
-    lastMsecs = millis();
-  }
+  //   lastMsecs = millis();
+  // }
   ws.cleanupClients();
 }
 
