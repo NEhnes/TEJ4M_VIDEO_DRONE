@@ -160,8 +160,8 @@ void setup()
     } });
 
   // Serve webpage
-  server.on("/", HTTP_GET, [](AsyncWebServerRequest *request)
-            {
+  server.on("/", HTTP_GET, [](AsyncWebServerRequest *request){
+    
     File file = SPIFFS.open("/index.html", "r");
     if (!file) {
       request->send(404, "text/plain", "File not found");
