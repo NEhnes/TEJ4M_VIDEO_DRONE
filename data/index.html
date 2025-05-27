@@ -6,10 +6,20 @@
     <style>
         /*Style the div that holds the joystick*/
         #joystick {
-            width: 100px; /* Match the joystick's size for proper alignment */
-            height: 100px; /* Match the joystick's size */
-            margin: 20px auto; /* Center the div horizontally and add vertical spacing */
-            /* Background and border-radius are removed to avoid a misaligned grey circle */
+            width: 100px;
+            height: 100px;
+            position: fixed;
+            left: 40px;
+            top: '50%';
+            transform: translateY(-50%);
+            border: 3px slateblue;
+        }
+        /* camera stream div */
+        #stream {
+            width: 640px;
+            height: 480px;
+            margin: 20px auto;
+            display: block;
         }
     </style>
 </head>
@@ -17,23 +27,36 @@
     <h1 style="color:blue;">ESP32 Motor Control</h1>
     <p style="font-style: italic; text-shadow: 2px 2px 5px gray">Welcome to the ESP32 motor control interface!</p>
 
+    <!-- === HIGHLIGHT: Added img element for camera feed === -->
+    <img id="stream" src="">
+    
     <div id="joystick"></div>
     
     <script>
         // connect to WebSocket
         const socket = new WebSocket('ws://' + window.location.hostname + '/ws');
+        // === HIGHLIGHT: Set binaryType to handle JPEG frames === //
+        socket.binaryType = 'arraybuffer';
 
         // when connected
         socket.onopen = () => {
             console.log('WebSocket connected!');
         };
 
-        // diusplay recvd message from esp32
+        // === HIGHLIGHT: Updated onmessage to handle text and binary data === //
         socket.onmessage = (event) => {
-            console.log('ESP32 says:', event.data);
+            if (typeof event.data === 'string') {
+                // Handle text messages (joystick-related)
+                console.log('ESP32 says:', event.data);
+            } else {
+                // Handle binary messages (camera JPEG frames)
+                const img = document.getElementById('stream');
+                const blob = new Blob([event.data], { type: 'image/jpeg' });
+                img.src = URL.createObjectURL(blob);
+            }
         };
 
-        // Create and configure the nipple.js joystick
+        // create and configure the nipple.js joystick
         const joystick = nipplejs.create({
             zone: document.getElementById('joystick'), // Attach joystick to the #joystick div
             mode: 'static', // 
@@ -43,17 +66,17 @@
         });
 
         // Event listener for joystick movement
-        joystick.on('move', function(evt, data) {
-            // Check if movement data includes direction and distance
-            if (data.direction && data.distance) {
-                const angle = data.angle.degree; // Get the angle of movement in degrees
-                // Calculate speed (0-100%) based on how far the joystick is moved
-                const speed = Math.min(data.distance / 50, 1) * 100; // Normalize distance to 0-100%
+        // joystick.on('move', function(evt, data) {
+        //     // Check if movement data includes direction and distance
+        //     if (data.direction && data.distance) {
+        //         const angle = data.angle.degree; // Get the angle of movement in degrees
+        //         // Calculate speed (0-100%) based on how far the joystick is moved
+        //         const speed = Math.min(data.distance / 50, 1) * 100; // Normalize distance to 0-100%
                 
-                //send data back to esp
-                socket.send("SPEED: " + speed + "--" + "ANGLE: " + angle);
-            }
-        });
+        //         //send data back to esp
+        //         socket.send("SPEED: " + speed + "--" + "ANGLE: " + angle);
+        //     }
+        // });
 
         // Event listener for when the joystick is released
         joystick.on('end', function() {
