@@ -1,21 +1,27 @@
 /*
-    BRANCH TEST TEST TEST BRANCH
-
-
-
-
-
-  STA mode, joins existing network and opens webserver.
-
-  Steps:
-  1. Connect to the access point "yourAp"
-  2. Point your web browser to http://192.168.4.1/H to turn the LED on or http://192.168.4.1/L to turn it off
-     OR
-     Run raw TCP "GET /H" and "GET /L" on PuTTY terminal with 192.168.4.1 as IP address and 80 as port
-
-  Created for arduino-esp32 on 04 July, 2018
-  by Elochukwu Ifediora (fedy0)
+    Camera stream working before current version. adding in new shi for motor driver
 */
+
+#pragma region NEW_GLOBAL
+
+#include <Arduino.h>
+
+#define AIN1_PIN 3
+#define AIN2_PIN 4
+#define PWM_A 5
+bool aForward = true;
+
+#define BIN1_PIN 2
+#define BIN2_PIN 1
+#define PWM_B 0
+bool bForward = true;
+
+#define STBY_PIN 10
+
+int lMotorSpeed = 50;
+int rMotorSpeed = 50;
+
+#pragma endregion
 
 #include <WiFi.h>
 #include <ESPAsyncWebServer.h>
@@ -54,6 +60,16 @@ void setup()
   pinMode(ledPin3, OUTPUT);
   pinMode(LED_BUILTIN, HIGH);
 
+  pinMode(AIN1_PIN, OUTPUT);
+  pinMode(AIN2_PIN, OUTPUT);
+  pinMode(BIN1_PIN, OUTPUT);
+  pinMode(BIN2_PIN, OUTPUT);
+  pinMode(STBY_PIN, OUTPUT);
+  pinMode(PWM_A, OUTPUT);
+  pinMode(PWM_B, OUTPUT);
+
+  digitalWrite(STBY_PIN, HIGH);
+
   msecs = millis();
   lastMsecs = millis();
 
@@ -61,7 +77,7 @@ void setup()
   Serial.println();
   Serial.println("Connecting...");
 
-  WiFi.begin(phone_ssid, phone_password);
+  WiFi.begin(ssid, password);
 
   while (WiFi.status() != WL_CONNECTED)
   {
@@ -92,7 +108,7 @@ void setup()
       for (size_t i = 0; i < len; i++) {
         msg += (char)data[i];
       }
-      //Serial.println("Received: " + msg);
+      Serial.println("Received: " + msg);
 
       if (msg.substring(0, 6) != "AT REST"){
         int speedStartIndex = msg.indexOf("SPEED: ") + 7;
@@ -102,6 +118,8 @@ void setup()
         }
         Serial.println("ONLY SPEED: ");
         Serial.println(speedString);
+        lMotorSpeed = constrain(speedString.toInt(), 0, 100);
+        rMotorSpeed = lMotorSpeed;
       }
 
       // Parse joystick data (e.g., "x:50,y:30")
@@ -147,4 +165,10 @@ void loop()
     lastMsecs = millis();
   }
   ws.cleanupClients();
+
+  // Serial.print("LEFT: ");
+  // Serial.println(lMotorSpeed);
+  // Serial.print("RIGHT: ");
+  // Serial.println(rMotorSpeed);
+
 }
