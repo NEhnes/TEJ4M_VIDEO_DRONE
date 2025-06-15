@@ -211,7 +211,7 @@ void loop() {
 
 
   if (msecs - lastMsecs > frameInterval){ // 10hz
-    // BroadcastCameraFrame(); - testing w/o stream
+    BroadcastCameraFrame();
     lastMsecs = msecs;
     
     int speedInt = speedString.toInt();
