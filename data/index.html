@@ -1,10 +1,23 @@
+<!--
+Nathan Ehnes
+2024-25 Sem 2 Creative Eng Project
+
+FYI** I myseld did not write all of the code in this file. 
+
+I learned the very basics of HTML, CSS and JS. 
+Web development skills were not within the scope of my project and learning.
+Opening a websocket and creating event listeners was beyond my abilities, so the setup is "inspired"
+by git repos/examples
+
+I understand what everything does but not the details of syntax for certain things
+-->
 <!DOCTYPE html>
 <html>
 <head>
     <title>ESP32 Motor Control</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/nipplejs/0.10.0/nipplejs.min.js"></script>
     <style>
-        /*Style the div that holds the joystick*/
+        /*style joystick div*/
         #joystick {
             width: 100px;
             height: 100px;
@@ -27,7 +40,7 @@
     <h1 style="color:blue;">ESP32 Motor Control</h1>
     <p style="font-style: italic; text-shadow: 2px 2px 5px gray">Welcome to the ESP32 motor control interface!</p>
 
-    <!-- === HIGHLIGHT: Added img element for camera feed === -->
+    <!-- img element for camera feed -->
     <img id="stream" src="">
     
     <div id="joystick"></div>
@@ -43,13 +56,13 @@
             console.log('WebSocket connected!');
         };
 
-        // === HIGHLIGHT: Updated onmessage to handle text and binary data === //
+        // accept data from esp
         socket.onmessage = (event) => {
             if (typeof event.data === 'string') {
-                // Handle text messages (joystick-related)
+                // TEXT messages - not used
                 console.log('ESP32 says:', event.data);
             } else {
-                // Handle binary messages (camera JPEG frames)
+                // IMAGES
                 const img = document.getElementById('stream');
                 const blob = new Blob([event.data], { type: 'image/jpeg' });
                 img.src = URL.createObjectURL(blob);
@@ -58,29 +71,27 @@
 
         // create and configure the nipple.js joystick
         const joystick = nipplejs.create({
-            zone: document.getElementById('joystick'), // Attach joystick to the #joystick div
+            zone: document.getElementById('joystick'), // attach joystick to the #joystick div
             mode: 'static', // 
-            position: { left: '50%', top: '50%' }, // Center the joystick in the div
-            color: 'blue', // Set joystick color to blue
-            size: 100 // Set joystick diameter to 100 pixels
+            position: { left: '50%', top: '50%' }, // center joystick in div
+            color: 'hotpink',
+            size: 100 // diameter
         });
 
-        // Event listener for joystick movement
-        // joystick.on('move', function(evt, data) {
-        //     // Check if movement data includes direction and distance
-        //     if (data.direction && data.distance) {
-        //         const angle = data.angle.degree; // Get the angle of movement in degrees
-        //         // Calculate speed (0-100%) based on how far the joystick is moved
-        //         const speed = Math.min(data.distance / 50, 1) * 100; // Normalize distance to 0-100%
+        // event listener for joystick movement
+        joystick.on('move', function(evt, data) {
+            // check if movement data includes direction and distance
+            if (data.direction && data.distance) {
+                const angle = data.angle.degree; // 0 is right, moving ccw
+                const speed = Math.min(data.distance / 50, 1) * 100; // 0-100 strength range
                 
-        //         //send data back to esp
-        //         socket.send("SPEED: " + speed + "--" + "ANGLE: " + angle);
-        //     }
-        // });
+                //send data back to esp
+                socket.send("SPEED: " + speed + "--" + "ANGLE: " + angle);
+            }
+        });
 
-        // Event listener for when the joystick is released
+        // event listener for when the joystick is released
         joystick.on('end', function() {
-            // Send a request to stop the motors (angle=0, speed=0)
             socket.send("AT REST");
         });
     </script>
