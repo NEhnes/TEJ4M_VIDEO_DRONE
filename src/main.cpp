@@ -1,8 +1,13 @@
 /*
-    Camera stream working before current version. adding in new shi for motor driver
+  Nathan Ehnes
+  June 18 2025
+  TEJ4M Creative engineering project
+
+  **I did not write code for websocket event listeners, just the details within
+  **Camera config is straight from an example repo, aside from image resolution/quality
+  **Certain other minor details were beyond my goals for this project
 */
 
-// CHECK OVER PINS USED
 #pragma region PWM_VARIABLES
 
 #define AIN1_PIN 3
@@ -51,13 +56,13 @@ int rMotorSpeed = 50;
 
 #pragma region creds_n_stream_data
 // login credentials
-const char *ssid = "Tupperware";
-const char *password = "meals4you";
+const char *ssid = "*****";
+const char *password = "*****";
 
-const char *phone_ssid = "nathan_iPhone";
-const char *phone_password = "nathan2024";
+const char *phone_ssid = "*****";
+const char *phone_password = "*****";
 
-const char *school_ssid = "amdsb-guest";
+const char *school_ssid = "*****";
 
 AsyncWebServer server(80);
 AsyncWebSocket ws("/ws");

@@ -4,17 +4,19 @@ Nathan Ehnes
 
 FYI** I myseld did not write all of the code in this file. 
 
-I learned the very basics of HTML, CSS and JS. 
+I learned the very basics of HTML, CSS and JS so that I could do the majority of this document.
+
 Web development skills were not within the scope of my project and learning.
-Opening a websocket and creating event listeners was beyond my abilities, so the setup is "inspired"
+Opening a websocket and creating event listeners was beyond my abilities, so these elements are "inspired"
 by git repos/examples
 
-I understand what everything does but not the details of syntax for certain things
+I understand what everything does but not the syntax intricaties of certain things
 -->
 <!DOCTYPE html>
 <html>
 <head>
     <title>ESP32 Motor Control</title>
+    <!-- pre-existing joystick library pulled from web by client -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/nipplejs/0.10.0/nipplejs.min.js"></script>
     <style>
         /*style joystick div*/
@@ -48,7 +50,6 @@ I understand what everything does but not the details of syntax for certain thin
     <script>
         // connect to WebSocket
         const socket = new WebSocket('ws://' + window.location.hostname + '/ws');
-        // === HIGHLIGHT: Set binaryType to handle JPEG frames === //
         socket.binaryType = 'arraybuffer';
 
         // when connected
