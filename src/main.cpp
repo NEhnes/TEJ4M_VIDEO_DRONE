@@ -3,7 +3,7 @@
 */
 
 // CHECK OVER PINS USED
-#pragma region PWM_VAR__GLOBAL
+#pragma region PWM_VARIABLES
 
 #define AIN1_PIN 3
 #define AIN2_PIN 4
@@ -15,7 +15,7 @@ bool aForward = true;
 #define PWM_B 0
 bool bForward = true;
 
-#define STBY_PIN 10
+#define STBY_PIN 9
 
 int lMotorSpeed = 50;
 int rMotorSpeed = 50;
@@ -64,15 +64,17 @@ AsyncWebSocket ws("/ws");
 String speedString, angleString;
 
 uint64_t msecs, lastMsecs;
-int targetFPS = 1;
+int targetFPS = 5;
 int jpegQuality = 30;
 int frameInterval = 1000 / targetFPS;
+int frameCounter = 0;
 #pragma endregion
 
 void BroadcastCameraFrame();
 void PrintIP();
 void DriveMotors();
 void InputToPWM(int _speed, double _angle);
+void SerialMotorData();
 
 void setup()
 {
@@ -84,7 +86,7 @@ void setup()
   pinMode(PWM_A, OUTPUT);
   pinMode(PWM_B, OUTPUT);
 
-  //digitalWrite(STBY_PIN, HIGH);      COMMENT IN LATER
+  digitalWrite(STBY_PIN, HIGH);
 
   msecs = lastMsecs = millis();
 
@@ -130,7 +132,7 @@ void setup()
   Serial.println();
   Serial.println("Connecting...");
 
-  WiFi.begin(ssid, password);
+  WiFi.begin(phone_ssid, phone_password);
 
   while (WiFi.status() != WL_CONNECTED) 
   {
@@ -210,7 +212,7 @@ void loop() {
   msecs = millis();
 
 
-  if (msecs - lastMsecs > frameInterval){ // 10hz
+  if (msecs - lastMsecs > frameInterval){ // 12hz
     BroadcastCameraFrame();
     lastMsecs = msecs;
     
@@ -220,11 +222,15 @@ void loop() {
     InputToPWM(speedInt, angleInt);
     DriveMotors();
 
+    frameCounter++;
+    if (frameCounter % 12 == 0){
+      SerialMotorData();
+    }
     // PrintIP();
   }
 
-  if (msecs - lastMsecs > frameInterval / 2){ // 20hz
-    ws.cleanupClients(); // not necessary to run often
+  if (msecs - lastMsecs > frameInterval / 2){ // 24hz
+    ws.cleanupClients(); // not necessary to run as often
   }
 }
 
@@ -266,24 +272,15 @@ void DriveMotors()
 { // ADDED FROM OTHER PROJ
 
   // write direction
-  // digitalWrite(AIN1_PIN, aForward);
-  // digitalWrite(AIN2_PIN, !aForward);
-  // digitalWrite(BIN1_PIN, bForward);            COMMENT IN LATER
-  // digitalWrite(BIN2_PIN, !bForward);
-
-  Serial.print("L_Forward: ");
-  Serial.print(aForward);
-  Serial.print(" /// R_Forward: ");
-  Serial.println(bForward);
-
-  Serial.print("LEFT PWM OUTPUT: ");
-  Serial.println(lMotorSpeed);
-  Serial.print("RIGHT PWM OUTPUT: ");
-  Serial.println(rMotorSpeed);
+  digitalWrite(AIN1_PIN, aForward);
+  digitalWrite(AIN2_PIN, !aForward);
+  digitalWrite(BIN1_PIN, bForward);
+  digitalWrite(BIN2_PIN, !bForward);
+  digitalWrite(STBY_PIN, HIGH);
 
   // write speed
-  // analogWrite(PWM_A, abs(lMotorSpeed));          COMMENT IN LATER
-  // analogWrite(PWM_B, abs(rMotorSpeed));
+  analogWrite(PWM_A, abs(lMotorSpeed));
+  analogWrite(PWM_B, abs(rMotorSpeed));
 }
 
 void InputToPWM(int _speed, double _angle){
@@ -341,4 +338,16 @@ void InputToPWM(int _speed, double _angle){
   if (rMotorSpeed > 100) rMotorSpeed = 100;
   if (rMotorSpeed < 0) rMotorSpeed = 0;
   rMotorSpeed = map(rMotorSpeed, 0, 100, 0, 255);
+}
+
+void SerialMotorData(){
+  Serial.print("L_Forward: ");
+  Serial.print(aForward);
+  Serial.print(" /// R_Forward: ");
+  Serial.println(bForward);
+
+  Serial.print("LEFT PWM OUTPUT: ");
+  Serial.println(lMotorSpeed);
+  Serial.print("RIGHT PWM OUTPUT: ");
+  Serial.println(rMotorSpeed);
 }
